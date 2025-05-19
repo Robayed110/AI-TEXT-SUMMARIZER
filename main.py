@@ -1,7 +1,15 @@
 import re
 
 import os
+import nltk
 from collections import defaultdict
+from collections import Counter
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+# Download required NLTK data
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
 
 def parse_chat_log(file_path):
     user_msgs = []
@@ -17,10 +25,35 @@ def parse_chat_log(file_path):
     return user_msgs, ai_msgs
 
 
+# -------- Message Statistics --------
+def message_stats(user_msgs, ai_msgs):
+    return {
+        "total_messages": len(user_msgs) + len(ai_msgs),
+        "user_messages": len(user_msgs),
+        "ai_messages": len(ai_msgs)
+    }
+
+
+# -------- Simple Keyword Extraction --------
+def extract_keywords(messages, top_n=5):
+    text = " ".join(messages).lower()
+    words = word_tokenize(text)
+    stop_words = set(stopwords.words('english'))
+    filtered_words = [w for w in words if w.isalnum() and w not in stop_words]
+    freq = Counter(filtered_words)
+    return freq.most_common(top_n)
+
+
 # -------- Process a Single File --------
 def process_file(file_path, use_tfidf=False):
     user_msgs, ai_msgs = parse_chat_log(file_path)
-    print(user_msgs, ai_msgs)
+    stats = message_stats(user_msgs, ai_msgs)
+    messages = user_msgs + ai_msgs
+
+    keywords = extract_keywords(messages)
+    print(f"Keywords: {keywords}")
+    print(f"Message Statistics: {stats}")
+    
 
 
 
